@@ -1,0 +1,42 @@
+id: ud_staff_csv_image
+label: 'Import staff photos from CSV'
+migration_tags:
+  - UD CSV Source
+  - UD Migrations Basic Example
+
+source:
+  constants:
+    DRUPAL_STAFF_PHOTO_DIRECTORY: 'public://staff_photo'
+
+  plugin: csv
+  path: modules/custom/ud_staff/sources/ud_photos.csv
+  ids: ['Photo ID']
+
+process:
+  psf_destination_filename:
+    plugin: callback
+    callable: basename
+    source: 'Photo URL'
+  psf_destination_full_path:
+    - plugin: concat
+      source:
+        - constants/DRUPAL_STAFF_PHOTO_DIRECTORY
+        - '@psf_destination_filename'
+      delimiter: /
+    - plugin: urlencode
+
+  psf_source_image_path:
+    plugin: urlencode
+    source: 'Photo URL'
+
+  uri:
+    plugin: download
+    source:
+      - '@psf_source_image_path'
+      - '@psf_destination_full_path'
+    file_exists: 'rename'
+
+destination:
+  plugin: 'entity:file'
+
+migration_dependencies: null
